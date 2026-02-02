@@ -8,6 +8,9 @@ import { Text, View } from 'react-native';
 export default function Signup() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   return (
     <View style={styles.container}>
@@ -21,6 +24,8 @@ export default function Signup() {
             placeholder="John Doe"
             keyboardType="default"
             placeholderTextColor="#808080"
+            onChangeText={setUsername}
+            value={username}
           />
         <Text style={styles.label}>Email</Text>
         <TextInput
@@ -29,6 +34,8 @@ export default function Signup() {
             inputMode='email'
             keyboardType="default"
             placeholderTextColor="#808080"
+            onChangeText={setEmail}
+            value={email}
           />
 
         <Text style={styles.label}>Password</Text>
@@ -38,6 +45,8 @@ export default function Signup() {
             keyboardType="default"
             secureTextEntry={true}
             placeholderTextColor="#808080"
+            onChangeText={setPassword}
+            value={password}
           />
 
       <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>
@@ -50,7 +59,41 @@ export default function Signup() {
       </View>
 
       <TouchableOpacity style={styles.signUpButton} onPress={() => {
-        router.push('/(auth)/signin');
+        fetch("https://furniture.pnglin.byenoob.com/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: username,
+            email: email,
+            password: password
+          })
+        })
+        .then((response) => {
+            if (!response.ok) {
+            return response.json().then((json) => {
+              if (json && json.error) {
+              alert(json.error);
+              } else {
+              alert(`Something went wrong. Status: ${response.status}`);
+              }
+              throw new Error(json && json.error ? json.error : `HTTP error! status: ${response.status}`);
+            });
+            }
+          return response.json();
+        })
+        .then((json) => {
+          if(json.error) {
+            alert(json.error);
+            return;
+          }
+          alert("Account created successfully!");
+          router.push('/(auth)/signin');
+        })
+        .catch((error) => {
+          console.error('Fetch error:', error);
+        });
       }}>
       <Text style={styles.signUpButtonText}>Sign up</Text>
       </TouchableOpacity>

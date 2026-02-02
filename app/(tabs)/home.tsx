@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import BottomNav from '@/components/bottom-nav';
+
 // luup Find All you need
 // kategooriate valik (Popular, Chair, Table, Armchair, Bed, La..)
 // Tooted 2x2 (Black Simple Lamp, Minimal Stand) ja all (Coffee Chair, Simple Desk)
@@ -24,28 +26,28 @@ const products = [
     {
         id: '1',
         name: 'Black Simple Lamp',
-        price: '€25',
+        price: '$ 25',
         image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
         category: 'Lamp',
     },
     {
         id: '2',
         name: 'Minimal Stand',
-        price: '€40',
+        price: '$ 40',
         image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
         category: 'Table',
     },
     {
         id: '3',
         name: 'Coffee Chair',
-        price: '€55',
+        price: '$ 55',
         image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=400&q=80',
         category: 'Chair',
     },
     {
         id: '4',
         name: 'Simple Desk',
-        price: '€70',
+        price: '$ 70',
         image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
         category: 'Table',
     },
@@ -53,7 +55,6 @@ const products = [
 
 export default function HomeScreen() {
     const [selectedCategory, setSelectedCategory] = useState('Popular');
-    const [selectedTab, setSelectedTab] = useState('Home');
 
     const filteredProducts =
         selectedCategory === 'Popular'
@@ -62,88 +63,57 @@ export default function HomeScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView>
-                <View style={styles.headerContainer}>
-                    <Ionicons name="search" size={24} color="#222" style={styles.searchIcon} />
-                    <Text style={styles.header}>Find All you need</Text>
+            <View style={styles.headerContainer}>
+                <Ionicons name="search" size={24} color="#222" style={styles.searchIcon} />
+                <Text style={styles.header}>Find All You Need</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScrollView}>
+                <View style={styles.categoryContainer}>
+                    {categories.map((cat) => (
+                        <TouchableOpacity
+                            key={cat.key}
+                            style={[
+                                styles.categoryButton,
+                                selectedCategory === cat.key && styles.categoryButtonSelected,
+                            ]}
+                            onPress={() => setSelectedCategory(cat.key)}
+                        >
+                            {cat.image ? (
+                                <Image
+                                    source={cat.image}
+                                    style={{ width: 32, height: 32, marginBottom: 4 }}
+                                    resizeMode="contain"
+                                />
+                            ) : (
+                                <Ionicons
+                                    name={cat.icon}
+                                    size={24}
+                                    color={selectedCategory === cat.key ? '#fff' : '#222'}
+                                    style={{ marginBottom: 4 }}
+                                />
+                            )}
+                        </TouchableOpacity>
+                        
+                    ))}
                 </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScrollView}>
-                    <View style={styles.categoryContainer}>
-                        {categories.map((cat) => (
-                            <TouchableOpacity
-                                key={cat.key}
-                                style={[
-                                    styles.categoryButton,
-                                    selectedCategory === cat.key && styles.categoryButtonSelected,
-                                ]}
-                                onPress={() => setSelectedCategory(cat.key)}
-                            >
-                                {cat.image ? (
-                                    <Image
-                                        source={cat.image}
-                                        style={{ width: 32, height: 32, marginBottom: 4 }}
-                                        resizeMode="contain"
-                                    />
-                                ) : (
-                                    <Ionicons
-                                        name={cat.icon}
-                                        size={24}
-                                        color={selectedCategory === cat.key ? '#fff' : '#222'}
-                                        style={{ marginBottom: 4 }}
-                                    />
-                                )}
-                            </TouchableOpacity>
-                            
-                        ))}
-                    </View>
-                </ScrollView>
-                <FlatList
-                    data={filteredProducts}
-                    keyExtractor={(item) => item.id}
-                    numColumns={2}
-                    columnWrapperStyle={styles.row}
-                    renderItem={({ item }) => (
-                        <View style={styles.productCard}>
-                            <Image source={{ uri: item.image }} style={styles.productImage} />
+            </ScrollView>
+            <FlatList
+                data={filteredProducts}
+                keyExtractor={(item) => item.id}
+                numColumns={2}
+                columnWrapperStyle={styles.row}
+                renderItem={({ item }) => (
+                    <View style={styles.productCard}>
+                        <Image source={{ uri: item.image }} style={styles.productImage} />
+                        <View style={styles.productInfo}>
                             <Text style={styles.productName}>{item.name}</Text>
                             <Text style={styles.productPrice}>{item.price}</Text>
                         </View>
-                    )}
-                    contentContainerStyle={styles.productsList}
-                />
-            </ScrollView>
-            <View style={styles.tabBar}>
-                <TouchableOpacity
-                    style={styles.tabButton}
-                    onPress={() => setSelectedTab('Home')}
-                >
-                    <Ionicons
-                        name={selectedTab === 'Home' ? 'home' : 'home-outline'}
-                        size={24}
-                        color={selectedTab === 'Home' ? '#4F63AC' : '#888'}
-                    />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.tabButton}
-                    onPress={() => setSelectedTab('Bookmarks')}
-                >
-                    <Ionicons
-                        name={selectedTab === 'Bookmarks' ? 'bookmark' : 'bookmark-outline'}
-                        size={24}
-                        color={selectedTab === 'Bookmarks' ? '#4F63AC' : '#888'}
-                    />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.tabButton}
-                    onPress={() => setSelectedTab('Account')}
-                >
-                    <Ionicons
-                        name={selectedTab === 'Account' ? 'person' : 'person-outline'}
-                        size={24}
-                        color={selectedTab === 'Account' ? '#4F63AC' : '#888'}
-                    />
-                </TouchableOpacity>
-            </View>
+                    </View>
+                )}
+                contentContainerStyle={styles.productsList}
+            />
+            <BottomNav />
         </SafeAreaView>
     );
 }
@@ -159,7 +129,7 @@ const styles = StyleSheet.create({
     searchIcon: {
         position: 'absolute', left: 0,
         marginLeft: 10,
-        color: '#4F63AC',
+        color: '#4F63AC'
     },
     header: { 
         fontSize: 28,
@@ -171,14 +141,14 @@ const styles = StyleSheet.create({
     },
     categoryContainer: { flexDirection: 'row', paddingHorizontal: 10 },
     categoryButton: {
-        paddingVertical: 16,
-        paddingHorizontal: 24,
-        borderRadius: 24,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 20,
         backgroundColor: '#f2f2f2',
         marginRight: 10,
-        minHeight: 56,
         justifyContent: 'center',
         alignItems: 'center',
+        height: 48,
     },
     categoryButtonSelected: {
         backgroundColor: '#222',
@@ -188,25 +158,19 @@ const styles = StyleSheet.create({
     productsList: { paddingHorizontal: 10 },
     row: { justifyContent: 'space-between', marginBottom: 16 },
     productCard: {
-        backgroundColor: '#fafafa',
         borderRadius: 12,
         padding: 16,
-        alignItems: 'center',
+        alignItems: 'flex-start',
         flex: 1,
         marginHorizontal: 5,
         height: 220,
     },
     productImage: { width: 140, height: 140, borderRadius: 8, marginBottom: 8 },
+    productInfo: {
+        width: '100%',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+    },
     productName: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
     productPrice: { fontSize: 14, fontWeight: 'bold', color: '#000000ff' },
-    tabBar: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        paddingVertical: 16,
-        borderTopWidth: 1,
-        borderColor: '#eee',
-        backgroundColor: '#fff',
-        gap: 60,
-    },
-    tabButton: { alignItems: 'center' },
 });

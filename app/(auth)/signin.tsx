@@ -1,12 +1,13 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-
-import { Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function Signin() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   return (
     <View style={styles.container}>
@@ -21,6 +22,8 @@ export default function Signin() {
             inputMode='email'
             keyboardType="default"
             placeholderTextColor="#808080"
+            value={email}
+            onChangeText={setEmail}
           />
 
         <Text style={styles.label}>Password</Text>
@@ -30,11 +33,49 @@ export default function Signin() {
             keyboardType="default"
             secureTextEntry={true}
             placeholderTextColor="#808080"
+            value={password}
+            onChangeText={setPassword}
           />
 
 
       <TouchableOpacity style={styles.signUpButton} onPress={() => {
-        router.push('/(tabs)/home');
+        fetch("https://furniture.pnglin.byenoob.com/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password
+          })
+        })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then((text) => {
+          console.log('Response:', text);
+          try {
+            const data = JSON.parse(text);
+            if (data.error) {
+              alert(data.error);
+              return;
+            }
+
+            // Store token
+            AsyncStorage.setItem('token', data.token);
+            router.push('/(tabs)/home');
+          } catch (e) {
+            alert('Invalid response from server: ' + text);
+            console.error('JSON parse error:', e);
+          }
+        })
+        .catch((error) => {
+          alert('Login error: ' + error.message);
+          console.error(error);
+        });
       }}>
       <Text style={styles.signUpButtonText}>Sign in</Text>
       </TouchableOpacity>

@@ -39,6 +39,24 @@ export default function TabLayout() {
           tabBarStyle: { display: 'none' },
         }}
       />
+      <Tabs.Screen
+        name="bookmarks"
+        options={{
+          title: 'Bookmarks',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="flag.fill" color={color} />,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: 'Account',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
     </Tabs>
   );
 }
