@@ -1,7 +1,6 @@
 import { useFonts } from 'expo-font';
-import { router } from 'expo-router';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
+const {go, back} = require('../router');
 
 export default function HomeScreen() {
   const [fontsLoaded] = useFonts({
@@ -27,13 +26,13 @@ export default function HomeScreen() {
       </View>
       
       <TouchableOpacity style={styles.signUpButton} onPress={() => {
-        router.push('/(auth)/signup');
+        go('/(auth)/signup');
       }}>
         <Text style={styles.signUpButtonText}>Sign up</Text>
       </TouchableOpacity>
       
       <TouchableOpacity onPress={() => {
-        router.push('/(auth)/signin');
+        go('/(auth)/signin');
       }}>
         <Text style={styles.signInText}>Sign in</Text>
       </TouchableOpacity>

@@ -1,12 +1,11 @@
 import { Checkbox } from 'expo-checkbox';
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { go } from '../router';
 
 import { Text, View } from 'react-native';
 
 export default function Signup() {
-  const router = useRouter();
   const [checked, setChecked] = useState(false);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -15,7 +14,7 @@ export default function Signup() {
   return (
     <View style={styles.container}>
       <Text onPress={() => {
-        router.push('/(tabs)');
+        go('/(tabs)');
       }} style={styles.backText}>{'←'} Sign up</Text>
 
         <Text style={styles.label}>Name</Text>
@@ -59,6 +58,10 @@ export default function Signup() {
       </View>
 
       <TouchableOpacity style={styles.signUpButton} onPress={() => {
+        if(!checked) {
+          alert("You must agree with Terms & Privacy to sign up.");
+          return; 
+        }
         fetch("https://furniture.pnglin.byenoob.com/register", {
           method: "POST",
           headers: {
@@ -89,7 +92,7 @@ export default function Signup() {
             return;
           }
           alert("Account created successfully!");
-          router.push('/(auth)/signin');
+          go('/(auth)/signin');
         })
         .catch((error) => {
           console.error('Fetch error:', error);
@@ -109,7 +112,7 @@ export default function Signup() {
     </TouchableOpacity>
 
       <Text style={{textAlign: 'center', color: '#4F63AC'}} onPress={() => {
-        router.push('/(auth)/signin');
+        go('/(auth)/signin');
       }}>Already have an account? Sign in</Text>
 
 

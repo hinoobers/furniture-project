@@ -1,28 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
-import { usePathname, useRouter } from 'expo-router';
+import { usePathname } from 'expo-router';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { go } from '../app/router';
 
 const NAV_ITEMS = [
-  { key: 'Home', icon: 'home', route: '/home' },
-  { key: 'Bookmarks', icon: 'bookmark', route: '/bookmarks' },
-  { key: 'Account', icon: 'person', route: '/account' },
+  { key: 'Home', icon: 'home', route: '/home', hidden: false },
+  { key: 'Bookmarks', icon: 'bookmark', route: '/bookmarks', hidden: false },
+  { key: 'Account', icon: 'person', route: '/account', hidden: false, additionalRoutes: ['/settings', '/mylistings'] },
 ];
 
+
 export default function BottomNav() {
-  const router = useRouter();
   const pathname = usePathname();
 
   return (
     <View style={styles.tabBar}>
-      {NAV_ITEMS.map((item) => {
+      {NAV_ITEMS.filter(item => !item.hidden).map((item) => {
         console.log('Current pathname:', pathname);
-        const isActive = pathname === item.route;
+        const isActive = pathname === item.route || (item.additionalRoutes && item.additionalRoutes.includes(pathname));
         return (
           <TouchableOpacity
             key={item.key}
             style={styles.tabButton}
-            onPress={() => router.push(item.route)}
+            onPress={() => go(item.route)}
           >
             <Ionicons
               name={isActive ? item.icon : `${item.icon}-outline`}

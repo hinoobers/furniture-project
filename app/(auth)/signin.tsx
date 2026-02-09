@@ -1,10 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { go } from '../router';
 
 export default function Signin() {
-  const router = useRouter();
   const [checked, setChecked] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,7 +11,7 @@ export default function Signin() {
   return (
     <View style={styles.container}>
       <Text onPress={() => {
-        router.push('/(tabs)');
+        go('/(tabs)');
       }} style={styles.backText}>{'←'} Sign in</Text>
 
         <Text style={styles.label}>Email</Text>
@@ -50,9 +49,6 @@ export default function Signin() {
           })
         })
         .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
           return response.text();
         })
         .then((text) => {
@@ -66,9 +62,9 @@ export default function Signin() {
 
             // Store token
             AsyncStorage.setItem('token', data.token);
-            router.push('/(tabs)/home');
+            go('/(tabs)/home');
           } catch (e) {
-            alert('Invalid response from server: ' + text);
+            alert('Something went wrong. Please try again.');
             console.error('JSON parse error:', e);
           }
         })
@@ -91,7 +87,7 @@ export default function Signin() {
     </TouchableOpacity>
 
       <Text style={{textAlign: 'center', color: '#4F63AC'}} onPress={() => {
-        router.push('/(auth)/signup');
+        go('/(auth)/signup');
       }}>Don't have an account? Sign up</Text>
 
 

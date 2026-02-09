@@ -6,23 +6,23 @@ import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BottomNav from '@/components/bottom-nav';
-import { go } from '../router';
+import { back, go } from '../router';
 
-export default function BookmarksScreen() {
-  const [favourites, setFavourites] = useState<Array<any>>([]);
+export default function MyListingsScreen() {
+  const [listings, setListings] = useState<Array<any>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      const fetchFavourites = async () => {
+      const fetchMyListings = async () => {
         setLoading(true);
         setError(null);
         try {
           const token = await AsyncStorage.getItem('token');
 
-          const [favResponse, productsResponse] = await Promise.all([
-            fetch('https://furniture.pnglin.byenoob.com/favourites', {
+          const [profileResponse, productsResponse] = await Promise.all([
+            fetch('https://furniture.pnglin.byenoob.com/profile', {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
@@ -38,55 +38,60 @@ export default function BookmarksScreen() {
             }),
           ]);
 
-          if (!favResponse.ok) {
-            throw new Error('Failed to fetch favourites');
+          if (!profileResponse.ok) {
+            throw new Error('Failed to fetch profile');
           }
           if (!productsResponse.ok) {
             throw new Error('Failed to fetch products');
           }
 
-          const favData = await favResponse.json();
+          const profileData = await profileResponse.json();
           const products: Array<any> = await productsResponse.json();
-          const favIds: number[] = JSON.parse(favData.favourites);
+          const userId = profileData.id;
 
-          const favouriteProducts = products.filter((p: any) =>
-            favIds.includes(Number(p.id))
+          // Filter products listed by this user (ignore static ones where listed_by is null)
+          const myProducts = products.filter(
+            (p: any) => p.listed_by != null && Number(p.listed_by) === Number(userId)
           );
-          setFavourites(favouriteProducts);
+          setListings(myProducts);
         } catch (err: any) {
           setError(err.message);
         } finally {
           setLoading(false);
         }
       };
-      fetchFavourites();
+      fetchMyListings();
     }, [])
   );
 
-  const removeFavourite = async (productId: number) => {
+  const deleteListing = async (productId: number) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('https://furniture.pnglin.byenoob.com/favourites', {
-        method: 'POST',
+      const response = await fetch(`https://furniture.pnglin.byenoob.com/products`, {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token ?? ''}`,
         },
-        body: JSON.stringify({ product_id: productId, value: false }),
+        body: JSON.stringify({ product_id: productId }),
       });
       if (!response.ok) {
-        throw new Error('Failed to remove favourite');
+        throw new Error('Failed to delete listing');
       }
-      setFavourites((prev) => prev.filter((p) => Number(p.id) !== productId));
+      setListings((prev) => prev.filter((p) => Number(p.id) !== productId));
     } catch (err: any) {
-      console.error('Error removing favourite:', err.message);
+      console.error('Error deleting listing:', err.message);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.header}>Favorites</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => back()}>
+          <Ionicons name="chevron-back" size={22} color="#4F63AC" />
+        </TouchableOpacity>
+        <Text style={styles.header}>My Listings</Text>
+        <View style={{ width: 44 }} />
       </View>
 
       {loading ? (
@@ -97,13 +102,13 @@ export default function BookmarksScreen() {
         <View style={styles.centered}>
           <Text style={{ color: 'red' }}>{error}</Text>
         </View>
-      ) : favourites.length === 0 ? (
+      ) : listings.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={{ fontSize: 16, color: '#666' }}>No favourites yet</Text>
+          <Text style={{ fontSize: 16, color: '#666' }}>No listings yet</Text>
         </View>
       ) : (
         <FlatList
-          data={favourites}
+          data={listings}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -123,10 +128,10 @@ export default function BookmarksScreen() {
               </View>
               <TouchableOpacity
                 style={styles.removeButton}
-                onPress={() => removeFavourite(Number(item.id))}
+                onPress={() => deleteListing(Number(item.id))}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="close-circle-outline" size={24} color="#4F63AC" />
+                <Image source={require('../../assets/images/trash.png')} style={{ width: 22, height: 22 }} />
               </TouchableOpacity>
             </TouchableOpacity>
           )}
@@ -144,11 +149,26 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 16,
+  },
+  backButton: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
-    margin: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   header: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
     fontFamily: 'Montserrat',
   },

@@ -1,9 +1,11 @@
+import BottomNav from '@/components/bottom-nav';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useState } from 'react';
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import BottomNav from '@/components/bottom-nav';
+import { go } from '../router';
 
 // luup Find All you need
 // kategooriate valik (Popular, Chair, Table, Armchair, Bed, La..)
@@ -14,51 +16,83 @@ import BottomNav from '@/components/bottom-nav';
 
 
 const categories = [
-    { key: 'Popular', label: 'Popular', icon: 'star' },
-    { key: 'Chair', label: 'Chair', image: require('../../assets/images/chair.png') },
-    { key: 'Table', label: 'Table', image: require('../../assets/images/table.png') },
-    { key: 'Armchair', label: 'Armchair', image: require('../../assets/images/armchair.png') },
-    { key: 'Bed', label: 'Bed', image: require('../../assets/images/bed.png') }, 
-    { key: 'Lamp', label: 'Lamp', image: require('../../assets/images/lamp.png') },
+    { key: 'POPULAR', label: 'Popular', icon: 'star' },
+    { key: 'CHAIR', label: 'Chair', image: require('../../assets/images/chair.png') },
+    { key: 'TABLE', label: 'Table', image: require('../../assets/images/table.png') },
+    { key: 'SOFA', label: 'Armchair', image: require('../../assets/images/armchair.png') },
+    { key: 'BED', label: 'Bed', image: require('../../assets/images/bed.png') },
+    { key: 'LAMP', label: 'Lamp', image: require('../../assets/images/lamp.png') },
 ];
 
-const products = [
-    {
-        id: '1',
-        name: 'Black Simple Lamp',
-        price: '$ 25',
-        image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
-        category: 'Lamp',
-    },
-    {
-        id: '2',
-        name: 'Minimal Stand',
-        price: '$ 40',
-        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
-        category: 'Table',
-    },
-    {
-        id: '3',
-        name: 'Coffee Chair',
-        price: '$ 55',
-        image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=400&q=80',
-        category: 'Chair',
-    },
-    {
-        id: '4',
-        name: 'Simple Desk',
-        price: '$ 70',
-        image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
-        category: 'Table',
-    },
-];
+// const products = [
+//     {
+//         id: '1',
+//         name: 'Black Simple Lamp',
+//         price: '$ 25',
+//         image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
+//         category: 'Lamp',
+//     },
+//     {
+//         id: '2',
+//         name: 'Minimal Stand',
+//         price: '$ 40',
+//         image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+//         category: 'Table',
+//     },
+//     {
+//         id: '3',
+//         name: 'Coffee Chair',
+//         price: '$ 55',
+//         image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=400&q=80',
+//         category: 'Chair',
+//     },
+//     {
+//         id: '4',
+//         name: 'Simple Desk',
+//         price: '$ 70',
+//         image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
+//         category: 'Table',
+//     },
+// ];
 
 export default function HomeScreen() {
-    const [selectedCategory, setSelectedCategory] = useState('Popular');
+    const [selectedCategory, setSelectedCategory] = useState('POPULAR');
+    const [products, setProducts] = useState<Array<any>>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchProducts = async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const token = await AsyncStorage.getItem('token');
+                    const response = await fetch('https://furniture.pnglin.byenoob.com/products', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token ?? ''}`,
+                        },
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch products');
+                    }
+                    const data = await response.json();
+                    setProducts(data);
+                } catch (err: any) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchProducts();
+        }, [])
+    );
 
     const filteredProducts =
-        selectedCategory === 'Popular'
-            ? products
+        selectedCategory === 'POPULAR'
+            ? products.filter((p) => p.is_popular)
             : products.filter((p) => p.category === selectedCategory);
 
     return (
@@ -93,7 +127,7 @@ export default function HomeScreen() {
                                 />
                             )}
                         </TouchableOpacity>
-                        
+
                     ))}
                 </View>
             </ScrollView>
@@ -103,13 +137,20 @@ export default function HomeScreen() {
                 numColumns={2}
                 columnWrapperStyle={styles.row}
                 renderItem={({ item }) => (
-                    <View style={styles.productCard}>
-                        <Image source={{ uri: item.image }} style={styles.productImage} />
-                        <View style={styles.productInfo}>
-                            <Text style={styles.productName}>{item.name}</Text>
-                            <Text style={styles.productPrice}>{item.price}</Text>
+                    <TouchableOpacity onPress={() => {
+                        go({
+                            pathname: "/product",
+                            params: { id: item.id }
+                        });
+                    }}>
+                        <View style={styles.productCard}>
+                            <Image source={{ uri: item.image_url }} style={styles.productImage} />
+                            <View style={styles.productInfo}>
+                                <Text style={styles.productName}>{item.name}</Text>
+                                <Text style={styles.productPrice}>$ {item.price}</Text>
+                            </View>
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 )}
                 contentContainerStyle={styles.productsList}
             />
@@ -131,13 +172,14 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         color: '#4F63AC'
     },
-    header: { 
+    header: {
         fontSize: 28,
         fontWeight: 'bold',
         fontFamily: 'Montserrat',
     },
     categoryScrollView: {
         marginBottom: 10,
+        maxHeight: 60,
     },
     categoryContainer: { flexDirection: 'row', paddingHorizontal: 10 },
     categoryButton: {
